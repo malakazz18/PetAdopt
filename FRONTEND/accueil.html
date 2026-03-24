@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetAdoption - Adoption d'animaux en Tunisie</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #faf7f2;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c5e2a;
+        }
+
+        .logo-text span {
+            color: #8b6946;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #5a5a5a;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #2c5e2a;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #f5f0e8;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+        }
+
+        .user-avatar {
+            background: #8b6946;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 1rem;
+            color: white;
+        }
+
+        .user-name {
+            color: #4a4a4a;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: #f0e8df;
+            color: #8b6946;
+            border: none;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .logout-btn:hover {
+            background: #e0d5c8;
+        }
+
+        /* Layout principal */
+        .main-container {
+            max-width: 1400px;
+            margin: 90px auto 2rem;
+            padding: 0 2rem;
+            display: flex;
+            gap: 2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #f0e8df;
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            color: #2c5e2a;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0e8df;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-section {
+            margin-bottom: 2rem;
+        }
+
+        .filter-section h3 {
+            color: #8b6946;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .locations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .location-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.7rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fefcf9;
+            border: 1px solid #f0e8df;
+        }
+
+        .location-item:hover {
+            background: #f5f0e8;
+            transform: translateX(3px);
+        }
+
+        .location-item.active {
+            background: #2c5e2a;
+            color: white;
+            border-color: #2c5e2a;
+        }
+
+        .location-item.active .location-name,
+        .location-item.active .location-count {
+            color: white;
+        }
+
+        .location-icon {
+            font-size: 1.3rem;
+        }
+
+        .location-info {
+            flex: 1;
+        }
+
+        .location-name {
+            font-weight: 600;
+            color: #4a4a4a;
+            font-size: 0.9rem;
+        }
+
+        .location-count {
+            font-size: 0.75rem;
+            color: #9b9b9b;
+        }
+
+        .filter-option {
+            margin-bottom: 0.8rem;
+        }
+
+        .filter-option label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            color: #5a5a5a;
+            padding: 0.4rem;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .filter-option label:hover {
+            background: #f5f0e8;
+        }
+
+        input[type="checkbox"], input[type="radio"] {
+            accent-color: #2c5e2a;
+            width: 16px;
+            height: 16px;
+        }
+
+        .age-filter {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .age-filter input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e0d5c8;
+            border-radius: 10px;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .age-filter input:focus {
+            outline: none;
+            border-color: #2c5e2a;
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 0.7rem;
+            background: #f0e8df;
+            color: #8b6946;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .reset-btn:hover {
+            background: #e0d5c8;
+        }
+
+        /* Section animaux */
+        .animals-section {
+            flex: 1;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #e8f0e5 0%, #f5efe8 100%);
+            border-radius: 25px;
+            padding: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.2rem;
+            color: #2c5e2a;
+            margin-bottom: 0.8rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #6b5a4a;
+            margin-bottom: 1.5rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #8b6946;
+        }
+
+        .stat-label {
+            color: #9b9b9b;
+            font-size: 0.85rem;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title h2 {
+            color: #2c5e2a;
+            font-size: 1.5rem;
+        }
+
+        .results-count {
+            color: #8b6946;
+            background: #f5f0e8;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid #f0e8df;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-img {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .card:hover .card-img img {
+            transform: scale(1.05);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: white;
+            color: #8b6946;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .card-content {
+            padding: 1.2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            color: #2c5e2a;
+        }
+
+        .location-tag {
+            color: #9b9b9b;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .animal-details {
+            display: flex;
+            gap: 1rem;
+            margin: 0.7rem 0;
+            color: #8b8b8b;
+            font-size: 0.8rem;
+        }
+
+        .description {
+            color: #6b6b6b;
+            margin: 0.7rem 0;
+            line-height: 1.5;
+            font-size: 0.9rem;
+        }
+
+        .btn-adopt {
+            width: 100%;
+            padding: 0.7rem;
+            background: #2c5e2a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-adopt:hover {
+            background: #1e461c;
+            transform: scale(1.02);
+        }
+
+        .footer {
+            background: white;
+            color: #9b9b9b;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid #f0e8df;
+        }
+
+        @media (max-width: 968px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+            
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .stats {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">
+                <div class="logo-icon">🐾</div>
+                <div class="logo-text">Pet<span>Adoption</span></div>
+            </div>
+            <ul class="nav-links">
+                <li><a href="animaux.html">Nos animaux</a></li>
+                <li><a href="adopter.html">Comment adopter</a></li>
+                <li><a href="aider.html">Nous aider</a></li>
+                <li><a href="contact.html">Contact</a></li>
+            </ul>
+            <div class="user-info" id="userInfo">
+    <div class="user-avatar">👤</div>
+    <span class="user-name" id="userNameDisplay">Invité</span>
+    
+    <!-- Bouton connexion -->
+    <button onclick="goToLogin()" class="logout-btn">Connexion</button>
+    
+    <!-- Bouton déconnexion -->
+    <button class="logout-btn" onclick="logout()">Déconnexion</button>
+</div>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-title">
+                <span>📍</span>
+                <span>Choisir un refuge</span>
+            </div>
+            
+            <div class="filter-section">
+                <div class="locations-list" id="locationsList"></div>
+            </div>
+
+            <div class="sidebar-title" style="margin-top: 1rem;">
+                <span>🔍</span>
+                <span>Filtrer par</span>
+            </div>
+
+            <div class="filter-section">
+                <h3>Type d'animal</h3>
+                <div class="filter-option">
+                    <label>
+                        <input type="checkbox" value="chien" class="type-filter"> 🐕 Chien
+                    </label>
+                </div>
+                <div class="filter-option">
+                    <label>
+                        <input type="checkbox" value="chat" class="type-filter"> 🐈 Chat
+                    </label>
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Âge</h3>
+                <div class="age-filter">
+                    <input type="number" id="minAge" placeholder="Min" min="0">
+                    <input type="number" id="maxAge" placeholder="Max" min="0">
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <h3>Taille</h3>
+                <div class="filter-option">
+                    <label><input type="radio" name="size" value=""> Toutes</label>
+                </div>
+                <div class="filter-option">
+                    <label><input type="radio" name="size" value="petit"> Petit (moins de 10kg)</label>
+                </div>
+                <div class="filter-option">
+                    <label><input type="radio" name="size" value="moyen"> Moyen (10-25kg)</label>
+                </div>
+                <div class="filter-option">
+                    <label><input type="radio" name="size" value="grand"> Grand (plus de 25kg)</label>
+                </div>
+            </div>
+
+            <button class="reset-btn" onclick="resetFilters()">Réinitialiser</button>
+        </aside>
+
+        <div class="animals-section">
+            <div class="hero">
+                <h1>🐾 Donnez-leur une seconde chance en Tunisie</h1>
+                <p>Des animaux attendent une famille aimante comme la vôtre</p>
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number" id="totalAnimals">0</div>
+                        <div class="stat-label">animaux disponibles</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">refuges partenaires</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">350+</div>
+                        <div class="stat-label">adoptions réussies</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title" id="animaux">
+                <h2>🌟 Nos compagnons à adopter</h2>
+                <div class="results-count" id="resultsCount">0 animaux</div>
+            </div>
+
+            <div class="cards" id="animalsContainer"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>🐾 PetAdoption - Refuge pour animaux en Tunisie</p>
+        <p>📍 Tunis | Sfax | Sousse | Bizerte | Nabeul | 📞 20 123 456 | ✉️ contact@petadoption.tn</p>
+        <p style="margin-top: 0.8rem; font-size: 0.85rem;">© 2024 PetAdoption - Donnez une seconde chance, adoptez !</p>
+    </footer>
+
+    <script>
+        const animals = [
+            { id: 1, name: "Max", type: "chien", age: 2, size: "grand", location: "Tunis", locationId: "tunis", description: "Max est un berger australien énergique et affectueux. Il adore les jeux et les longues promenades.", image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 2, name: "Luna", type: "chat", age: 1, size: "petit", location: "Sfax", locationId: "sfax", description: "Luna est une chatte douce et câline. Elle adore les câlins et les moments de tranquillité.", image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♀️" },
+            { id: 3, name: "Rocky", type: "chien", age: 3, size: "moyen", location: "Sousse", locationId: "sousse", description: "Rocky est un chien loyal et protecteur. Très joueur et patient avec les enfants.", image: "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 4, name: "Milo", type: "chat", age: 4, size: "petit", location: "Tunis", locationId: "tunis", description: "Milo est un chat indépendant mais très affectueux quand il a confiance.", image: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 5, name: "Nala", type: "chien", age: 1, size: "petit", location: "Bizerte", locationId: "bizerte", description: "Nala est une petite boule d'énergie. Très sociable avec les enfants.", image: "https://images.unsplash.com/photo-1596492784531-6e6f5ea2d1c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♀️" },
+            { id: 6, name: "Simba", type: "chat", age: 2, size: "moyen", location: "Sfax", locationId: "sfax", description: "Simba est un chat majestueux et calme. Il recherche un foyer tranquille.", image: "https://images.unsplash.com/photo-1533749871412-5e2e3b5a9f6a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 7, name: "Rex", type: "chien", age: 5, size: "grand", location: "Sousse", locationId: "sousse", description: "Rex est un berger allemand très intelligent et protecteur.", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 8, name: "Misty", type: "chat", age: 1, size: "petit", location: "Nabeul", locationId: "nabeul", description: "Misty est une chatte timide mais très câline une fois en confiance.", image: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♀️" }
+        ];
+
+        const locations = [
+            { id: "all", name: "Tous les refuges", icon: "🏠", count: animals.length },
+            { id: "tunis", name: "Tunis", icon: "🌆", count: animals.filter(a => a.locationId === "tunis").length },
+            { id: "sfax", name: "Sfax", icon: "🏛️", count: animals.filter(a => a.locationId === "sfax").length },
+            { id: "sousse", name: "Sousse", icon: "🌊", count: animals.filter(a => a.locationId === "sousse").length },
+            { id: "bizerte", name: "Bizerte", icon: "⛵", count: animals.filter(a => a.locationId === "bizerte").length },
+            { id: "nabeul", name: "Nabeul", icon: "🍊", count: animals.filter(a => a.locationId === "nabeul").length }
+        ];
+
+        let currentLocation = "all";
+        let currentFilters = { types: [], minAge: "", maxAge: "", size: "" };
+
+        function checkConnection() {
+    const currentUser = localStorage.getItem('petadoption_current_user');
+    
+    if (!currentUser) {
+        document.getElementById('userNameDisplay').textContent = "Invité";
+    } else {
+        const user = JSON.parse(currentUser);
+        document.getElementById('userNameDisplay').textContent = user.name.split(' ')[0];
+    }
+}
+        function logout() {
+            localStorage.removeItem('petadoption_current_user');
+            window.location.href = 'connexion.html';
+        }
+
+        function loadLocations() {
+            const container = document.getElementById('locationsList');
+            container.innerHTML = locations.map(loc => `
+                <div class="location-item ${currentLocation === loc.id ? 'active' : ''}" onclick="filterByLocation('${loc.id}')">
+                    <div class="location-icon">${loc.icon}</div>
+                    <div class="location-info">
+                        <div class="location-name">${loc.name}</div>
+                        <div class="location-count">${loc.count} animaux</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterByLocation(locationId) {
+            currentLocation = locationId;
+            loadLocations();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            let filtered = [...animals];
+            
+            if (currentLocation !== "all") {
+                filtered = filtered.filter(a => a.locationId === currentLocation);
+            }
+            if (currentFilters.types.length > 0) {
+                filtered = filtered.filter(a => currentFilters.types.includes(a.type));
+            }
+            if (currentFilters.minAge) {
+                filtered = filtered.filter(a => a.age >= parseInt(currentFilters.minAge));
+            }
+            if (currentFilters.maxAge) {
+                filtered = filtered.filter(a => a.age <= parseInt(currentFilters.maxAge));
+            }
+            if (currentFilters.size) {
+                filtered = filtered.filter(a => a.size === currentFilters.size);
+            }
+            
+            updateAnimalsDisplay(filtered);
+        }
+
+        function updateAnimalsDisplay(filteredAnimals) {
+            const container = document.getElementById('animalsContainer');
+            const resultsCount = document.getElementById('resultsCount');
+            const totalAnimals = document.getElementById('totalAnimals');
+            
+            resultsCount.textContent = `${filteredAnimals.length} animaux`;
+            totalAnimals.textContent = filteredAnimals.length;
+            
+            if (filteredAnimals.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: 20px;">
+                        <span style="font-size: 3rem;">🐾</span>
+                        <h3 style="color: #2c5e2a; margin-top: 1rem;">Aucun animal trouvé</h3>
+                        <p style="color: #8b6946;">Modifiez vos filtres pour voir plus d'animaux</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredAnimals.map(animal => `
+                <div class="card">
+                    <div class="card-img">
+                        <img src="${animal.image}" alt="${animal.name}">
+                        <div class="card-badge">${animal.type === 'chien' ? '🐕 Chien' : '🐈 Chat'} • ${animal.age} an${animal.age > 1 ? 's' : ''}</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-header">
+                            <h3>${animal.name} ${animal.gender}</h3>
+                            <div class="location-tag">📍 ${animal.location}</div>
+                        </div>
+                        <div class="animal-details">
+                            <span>📏 ${animal.size === 'petit' ? 'Petit' : animal.size === 'moyen' ? 'Moyen' : 'Grand'}</span>
+                            <span>❤️ Stérilisé</span>
+                            <span>💉 Vacciné</span>
+                        </div>
+                        <p class="description">${animal.description}</p>
+                        <button class="btn-adopt" onclick="adoptAnimal('${animal.name}')">Je veux l'adopter</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function adoptAnimal(name) {
+            alert(`🐾 Merci pour votre intérêt pour ${name} !\n\nNotre équipe en Tunisie vous contactera dans les 48h pour organiser une rencontre.\n\nPréparez votre cœur à l'accueillir ❤️`);
+        }
+
+        function resetFilters() {
+            currentFilters = { types: [], minAge: "", maxAge: "", size: "" };
+            document.querySelectorAll('.type-filter').forEach(cb => cb.checked = false);
+            document.getElementById('minAge').value = "";
+            document.getElementById('maxAge').value = "";
+            document.querySelectorAll('input[name="size"]').forEach(radio => radio.checked = false);
+            applyFilters();
+        }
+
+        document.querySelectorAll('.type-filter').forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked) currentFilters.types.push(this.value);
+                else currentFilters.types = currentFilters.types.filter(t => t !== this.value);
+                applyFilters();
+            });
+        });
+
+        document.getElementById('minAge').addEventListener('input', function() {
+            currentFilters.minAge = this.value;
+            applyFilters();
+        });
+
+        document.getElementById('maxAge').addEventListener('input', function() {
+            currentFilters.maxAge = this.value;
+            applyFilters();
+        });
+
+        document.querySelectorAll('input[name="size"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                currentFilters.size = this.value;
+                applyFilters();
+            });
+        });
+
+        checkConnection();
+        loadLocations();
+        applyFilters();
+        function goToLogin() {
+    window.location.href = 'connexion.html';
+}
+    </script>
+</body>
+</html>
