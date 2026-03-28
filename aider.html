@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>En savoir plus</title>
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #faf7f2;
+    margin: 0;
+}
+
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+}
+
+.header a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #5a5a5a;
+    font-weight: 500;
+}
+
+.header a:hover {
+    color: #2c5e2a;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 100px auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #812e98;
+}
+
+.card {
+    background: white;
+    padding: 1rem;
+    border-radius: 15px;
+    margin: 1rem 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+button {
+    background: #2c5e2a;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1e461c;
+}
+
+/* notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2c5e2a;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+.header {
+    background: white;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-icon {
+    font-size: 1.8rem;
+}
+
+.logo-text {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c5e2a;
+}
+
+.logo-text span {
+    color: #8b6946;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #5a5a5a;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #2c5e2a;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <div class="logo-icon">🐾</div>
+            <div class="logo-text">Pet<span>Adoption</span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="accueil.html">Accueil</a></li>
+            <li><a href="animaux.html">Nos animaux</a></li>
+            <li><a href="adopter.html">Comment adopter</a></li>
+            <li><a href="aider.html">En savoir plus</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+<h1>🐾 Questions Fréquentes</h1>
+
+<div class="card">
+<h3>Comment utiliser le site ?</h3>
+<p>Créez un compte puis explorez les animaux.</p>
+</div>
+
+<div class="card">
+<h3>Puis-je aider sans adopter ?</h3>
+<p>Oui, partagez ou faites un don ❤️</p>
+</div>
+
+<div class="card">
+<h3>Est-ce gratuit ?</h3>
+<p>Des frais peuvent exister selon le refuge.</p>
+</div>
+<div class="card">
+<h3>Puis-je revenir en arrière si ça ne se passe pas bien ?</h3>
+<p>Oui. Si l’adoption ne fonctionne pas, l’animal doit être rendu au propriétaire qui l’a confié. <br>  Cela permet de garantir sa sécurité et de lui trouver une nouvelle famille.</p>
+</div>
+
+<div class="card">
+<h3>Combien de temps faut-il pour adopter ?</h3>
+<p>En général, comptez entre 3 jours et 1 semaine.</p>
+</div>
+
+<div class="card">
+<h3>Comment se déroule le processus d’adoption ?</h3>
+<p>Vous commencez par consulter les profils des animaux disponibles sur la plateforme. <br>
+    Lorsque vous avez un coup de cœur, il vous suffit de clicker sur le bouton je veut l'adopter</p>
+</div>
+</div>
+
+
+
+</body>
+</html>

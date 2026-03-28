@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Contact</title>
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #faf7f2;
+    margin: 0;
+}
+
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+}
+
+.header a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #5a5a5a;
+    font-weight: 500;
+}
+
+.header a:hover {
+    color: #2c5e2a;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 100px auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #812e98;
+}
+
+.card {
+    background: white;
+    padding: 1rem;
+    border-radius: 15px;
+    margin: 1rem 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+button {
+    background: #2c5e2a;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1e461c;
+}
+
+/* notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2c5e2a;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+.header {
+    background: white;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-icon {
+    font-size: 1.8rem;
+}
+
+.logo-text {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c5e2a;
+}
+
+.logo-text span {
+    color: #8b6946;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #5a5a5a;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #2c5e2a;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <div class="logo-icon">🐾</div>
+            <div class="logo-text">Pet<span>Adoption</span></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="accueil.html">Accueil</a></li>
+            <li><a href="animaux.html">Nos animaux</a></li>
+            <li><a href="adopter.html">Comment adopter</a></li>
+            <li><a href="aider.html">En savoir plus</a></li>
+            <li><a href="contact.html">Contact</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+<h1>📞 Contact</h1>
+
+<div class="card">
+<p>📍 Tunisie</p>
+<p>📞 20 123 456</p>
+<p>📧 petadoption@gmail.com</p>
+</div>
+
+<div class="card">
+<h3>📩 Envoyer un message</h3>
+
+<form id="contactForm">
+
+    <input type="text" id="name" placeholder="Nom">
+    <span id="nameError" style="color:red; font-size:12px;"></span>
+    <br><br>
+
+    <input type="email" id="email" placeholder="Email">
+    <span id="emailError" style="color:red; font-size:12px;"></span>
+    <br><br>
+
+    <textarea id="message" placeholder="Message"></textarea>
+    <span id="messageError" style="color:red; font-size:12px;"></span>
+    <br><br>
+
+    <button type="submit">Envoyer</button>
+</form>
+
+</div>
+<script>
+    document.getElementById("contactForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let valid = true;
+
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const message = document.getElementById("message").value.trim();
+
+    // reset erreurs
+    document.getElementById("nameError").textContent = "";
+    document.getElementById("emailError").textContent = "";
+    document.getElementById("messageError").textContent = "";
+
+    // validation nom
+    if (name === "") {
+        document.getElementById("nameError").textContent = "Nom obligatoire";
+        valid = false;
+    }
+
+    // validation email
+    if (email === "") {
+        document.getElementById("emailError").textContent = "Email obligatoire";
+        valid = false;
+    } else if (!email.includes("@")) {
+        document.getElementById("emailError").textContent = "Email invalide";
+        valid = false;
+    }
+
+    // validation message
+    if (message === "") {
+        document.getElementById("messageError").textContent = "Message obligatoire";
+        valid = false;
+    }
+
+    // si tout est valide
+    if (valid) {
+        alert("✅ Message envoyé avec succès !");
+        document.getElementById("contactForm").reset();
+    }
+});
+</script>
+
+
+</body>
+</html>
