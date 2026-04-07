@@ -1,3 +1,4 @@
+
 <?php
 global $pdo;
 require_once 'config.php';
@@ -5,39 +6,56 @@ require_once 'config.php';
 $view = $_GET['view'] ?? 'animaux';
 $region = $_GET['region'] ?? 'all';
 
+// All 24 Tunisian governorates
 $regions = [
         'all' => ['name' => 'Toute la Tunisie', 'icon' => '🏠'],
         'tunis' => ['name' => 'Tunis', 'icon' => '🌆'],
-        'sfax' => ['name' => 'Sfax', 'icon' => '🏛️'],
-        'sousse' => ['name' => 'Sousse', 'icon' => '🌊'],
-        'bizerte' => ['name' => 'Bizerte', 'icon' => '⛵'],
+        'ariana' => ['name' => 'Ariana', 'icon' => '🏢'],
+        'ben_arous' => ['name' => 'Ben Arous', 'icon' => '🌳'],
+        'manouba' => ['name' => 'La Manouba', 'icon' => '🌾'],
         'nabeul' => ['name' => 'Nabeul', 'icon' => '🍊'],
+        'zaghouan' => ['name' => 'Zaghouan', 'icon' => '⛰️'],
+        'bizerte' => ['name' => 'Bizerte', 'icon' => '⛵'],
+        'beja' => ['name' => 'Béja', 'icon' => '🌻'],
+        'jendouba' => ['name' => 'Jendouba', 'icon' => '🌲'],
+        'kef' => ['name' => 'Le Kef', 'icon' => '🏔️'],
+        'siliana' => ['name' => 'Siliana', 'icon' => '🌄'],
+        'sousse' => ['name' => 'Sousse', 'icon' => '🌊'],
+        'monastir' => ['name' => 'Monastir', 'icon' => '🏖️'],
+        'mahdia' => ['name' => 'Mahdia', 'icon' => '⚓'],
+        'sfax' => ['name' => 'Sfax', 'icon' => '🏛️'],
+        'kairouan' => ['name' => 'Kairouan', 'icon' => '🕌'],
+        'kasserine' => ['name' => 'Kasserine', 'icon' => '🏜️'],
+        'sidi_bouzid' => ['name' => 'Sidi Bouzid', 'icon' => '🌵'],
+        'gafsa' => ['name' => 'Gafsa', 'icon' => '💎'],
+        'tozeur' => ['name' => 'Tozeur', 'icon' => '🌴'],
+        'kebili' => ['name' => 'Kébili', 'icon' => '🐪'],
+        'gabes' => ['name' => 'Gabès', 'icon' => '🌊'],
+        'medenine' => ['name' => 'Médenine', 'icon' => '🏺'],
+        'tataouine' => ['name' => 'Tataouine', 'icon' => '🎬'],
 ];
 
-// BUG FIX 1: Calculate counts BEFORE applying region filters
-// This ensures the sidebar counts remain correct regardless of selected region
+// Calculate counts BEFORE applying region filters
 $allAnimalsForCount = $pdo->query("
-    SELECT a.id, a.statut_adoption, u.region as user_region, v.region as vet_region 
+    SELECT a.id, a.statut_adoption, a.region
     FROM animaux a 
-    JOIN utilisateurs u ON a.id_proprietaire = u.id 
-    LEFT JOIN veterinaires v ON u.email = v.email
     WHERE a.statut_adoption IN ('DISPONIBLE', 'EN_COURS', 'ADOPTE')
 ")->fetchAll();
 
-$animalCounts = ['all' => 0, 'tunis' => 0, 'sfax' => 0, 'sousse' => 0, 'bizerte' => 0, 'nabeul' => 0];
+$animalCounts = array_fill_keys(array_keys($regions), 0);
 foreach ($allAnimalsForCount as $a) {
     if (in_array($a['statut_adoption'], ['DISPONIBLE', 'EN_COURS'])) {
         $animalCounts['all']++;
-        $r = $a['vet_region'] ?? $a['user_region'] ?? null;
+        $r = $a['region'] ?? null;
         if ($r && isset($animalCounts[$r])) $animalCounts[$r]++;
     }
 }
 
-// Get vets count by region (all regions, not filtered)
+// Get vets count by region
 $allVetsForCount = $pdo->query("
     SELECT region FROM veterinaires WHERE statut_validation = 'VALIDE'
 ")->fetchAll();
-$vetCounts = ['all' => 0, 'tunis' => 0, 'sfax' => 0, 'sousse' => 0, 'bizerte' => 0, 'nabeul' => 0];
+$vetCounts = array_fill_keys(array_keys($regions), 0);
 foreach ($allVetsForCount as $v) {
     $vetCounts['all']++;
     $r = $v['region'] ?? null;
@@ -49,12 +67,11 @@ $whereClause = "WHERE a.statut_adoption IN ('DISPONIBLE', 'EN_COURS', 'ADOPTE')"
 $params = [];
 
 if ($region !== 'all') {
-    $whereClause .= " AND (u.region = ? OR v.region = ?)";
-    $params[] = $region;
+    $whereClause .= " AND a.region = ?";
     $params[] = $region;
 }
 
-// Apply other filters
+// Apply other filters with sanitization
 if (isset($_GET['espece']) && $_GET['espece']) {
     $whereClause .= " AND a.espece = ?";
     $params[] = $_GET['espece'];
@@ -62,37 +79,37 @@ if (isset($_GET['espece']) && $_GET['espece']) {
 
 if (isset($_GET['poids_min']) && $_GET['poids_min'] !== '') {
     $whereClause .= " AND a.poids >= ?";
-    $params[] = $_GET['poids_min'];
+    $params[] = (float)$_GET['poids_min'];
 }
 
 if (isset($_GET['poids_max']) && $_GET['poids_max'] !== '') {
     $whereClause .= " AND a.poids <= ?";
-    $params[] = $_GET['poids_max'];
+    $params[] = (float)$_GET['poids_max'];
 }
 
 if (isset($_GET['age_min']) && $_GET['age_min'] !== '') {
     $whereClause .= " AND a.age >= ?";
-    $params[] = $_GET['age_min'];
+    $params[] = (float)$_GET['age_min'];
 }
 
 if (isset($_GET['age_max']) && $_GET['age_max'] !== '') {
     $whereClause .= " AND a.age <= ?";
-    $params[] = $_GET['age_max'];
+    $params[] = (float)$_GET['age_max'];
 }
 
 if (isset($_GET['sterilise']) && $_GET['sterilise'] !== '') {
     $whereClause .= " AND a.sterilise = ?";
-    $params[] = $_GET['sterilise'];
+    $params[] = (int)$_GET['sterilise'];
 }
 
 if (isset($_GET['vaccine']) && $_GET['vaccine'] !== '') {
     $whereClause .= " AND a.vaccine = ?";
-    $params[] = $_GET['vaccine'];
+    $params[] = (int)$_GET['vaccine'];
 }
 
 if (isset($_GET['errant']) && $_GET['errant'] !== '') {
     $whereClause .= " AND a.errant = ?";
-    $params[] = $_GET['errant'];
+    $params[] = (int)$_GET['errant'];
 }
 
 $stmt = $pdo->prepare("
@@ -107,7 +124,7 @@ $stmt = $pdo->prepare("
 $stmt->execute($params);
 $animals = $stmt->fetchAll();
 
-// BUG FIX 4: Fixed vet query - join through utilisateurs to get correct animals count
+// Vets query
 $vetWhere = "WHERE v.statut_validation = 'VALIDE'";
 $vetParams = [];
 
@@ -129,19 +146,14 @@ $stmt = $pdo->prepare("
 $stmt->execute($vetParams);
 $vets = $stmt->fetchAll();
 
-// Stats - region-aware
+// Stats
 if ($region === 'all') {
     $totalAnimals = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoption IN ('DISPONIBLE', 'EN_COURS')")->fetchColumn();
     $totalVets = $pdo->query("SELECT COUNT(*) FROM veterinaires WHERE statut_validation = 'VALIDE'")->fetchColumn();
 } else {
-    // For region counts, recompute available only
-    $totalAnimals = 0;
-    foreach ($allAnimalsForCount as $a) {
-        if (($a['vet_region'] ?? $a['user_region'] ?? null) === $region) $totalAnimals++;
-    }
+    $totalAnimals = $animalCounts[$region] ?? 0;
     $totalVets = $vetCounts[$region] ?? 0;
 }
-// Count adoptions from animaux table directly — covers both demande-accepted and manually marked adopted
 $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoption = 'ADOPTE'")->fetchColumn();
 ?>
 <!DOCTYPE html>
@@ -188,7 +200,6 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
         .logout-btn { background: #f0e8df; color: #8b6946; border: none; padding: 0.3rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.3s; font-size: 0.8rem; }
         .logout-btn:hover { background: #e0d5c8; }
 
-        /* Main Tabs */
         .main-tabs { background: white; border-bottom: 2px solid #f0e8df; position: sticky; top: 70px; z-index: 100; }
         .main-tabs-container { max-width: 1400px; margin: 0 auto; display: flex; padding: 0 2rem; }
         .main-tab { padding: 1rem 2rem; background: none; border: none; color: #8b6946; font-weight: 500; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
@@ -202,7 +213,19 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
             display: flex;
             gap: 2rem;
         }
-        .sidebar { width: 320px; background: white; border-radius: 20px; padding: 1.5rem; height: fit-content; position: sticky; top: 140px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); border: 1px solid #f0e8df; }
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 140px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #f0e8df;
+            max-height: calc(100vh - 160px);
+            overflow-y: auto;
+        }
         .sidebar-title { font-size: 1.2rem; color: #2c5e2a; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 2px solid #f0e8df; display: flex; align-items: center; gap: 0.5rem; }
 
         .locations-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -267,14 +290,14 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
 
         /* Vet Card Specific */
         .vet-card { display: flex; align-items: center; gap: 1.5rem; padding: 1.5rem; }
-        .vet-avatar { width: 80px; height: 80px; background: #2c5e2a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; flex-shrink: 0; }
+        .vet-avatar { width: 80px; height: 80px; background: #2c5e2a; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; flex-shrink: 0; overflow: hidden; }
+        .vet-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .vet-info { flex: 1; }
         .vet-info h3 { margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
         .vet-info p { color: #8b6946; font-size: 0.9rem; margin-bottom: 0.3rem; }
         .vet-stats { display: flex; gap: 1rem; margin-top: 0.5rem; }
         .vet-stat { background: #f5f0e8; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; color: #8b6946; }
 
-        /* BUG FIX 2: Footer stays at bottom */
         .footer {
             background: white;
             color: #9b9b9b;
@@ -286,7 +309,7 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
 
         @media (max-width: 968px) {
             .main-container { flex-direction: column; margin-top: 180px; }
-            .sidebar { width: 100%; position: static; }
+            .sidebar { width: 100%; position: static; max-height: none; }
             .main-tabs-container { flex-wrap: wrap; }
         }
     </style>
@@ -294,10 +317,10 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
 <body>
 <header class="header">
     <nav class="nav">
-        <div class="logo">
-            <div class="logo-icon">🐾</div>
-            <div class="logo-text">Pet<span>Adoption</span></div>
-        </div>
+        <a href="accueil.php" style="text-decoration:none;"><div class="logo">
+                <div class="logo-icon">🐾</div>
+                <div class="logo-text">Pet<span>Adoption</span></div>
+            </div></a>
         <ul class="nav-links">
             <li><a href="aider.html">En savoir plus</a></li>
             <li><a href="contact.html">Contact</a></li>
@@ -385,16 +408,16 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
                 <div class="filter-section">
                     <h3>Poids (kg)</h3>
                     <div class="filter-row">
-                        <input type="number" name="poids_min" class="filter-input" placeholder="Min" value="<?php echo $_GET['poids_min'] ?? ''; ?>" step="0.1">
-                        <input type="number" name="poids_max" class="filter-input" placeholder="Max" value="<?php echo $_GET['poids_max'] ?? ''; ?>" step="0.1">
+                        <input type="number" name="poids_min" class="filter-input" placeholder="Min" value="<?php echo $_GET['poids_min'] ?? ''; ?>" step="0.1" onchange="this.form.submit()">
+                        <input type="number" name="poids_max" class="filter-input" placeholder="Max" value="<?php echo $_GET['poids_max'] ?? ''; ?>" step="0.1" onchange="this.form.submit()">
                     </div>
                 </div>
 
                 <div class="filter-section">
                     <h3>Âge (années)</h3>
                     <div class="filter-row">
-                        <input type="number" name="age_min" class="filter-input" placeholder="Min" value="<?php echo $_GET['age_min'] ?? ''; ?>" step="0.5">
-                        <input type="number" name="age_max" class="filter-input" placeholder="Max" value="<?php echo $_GET['age_max'] ?? ''; ?>" step="0.5">
+                        <input type="number" name="age_min" class="filter-input" placeholder="Min" value="<?php echo $_GET['age_min'] ?? ''; ?>" step="0.5" onchange="this.form.submit()">
+                        <input type="number" name="age_max" class="filter-input" placeholder="Max" value="<?php echo $_GET['age_max'] ?? ''; ?>" step="0.5" onchange="this.form.submit()">
                     </div>
                 </div>
 
@@ -420,14 +443,14 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
                     </div>
                 </div>
 
-                <button type="submit" class="reset-btn">Appliquer les filtres</button>
-                <a href="?view=animaux&region=<?php echo $region; ?>" class="reset-btn" style="background: #e0d5c8;">Réinitialiser</a>
+                <!-- Removed useless "Appliquer les filtres" button since everything auto-submits -->
+                <a href="?view=animaux&region=<?php echo $region; ?>" class="reset-btn">Réinitialiser les filtres</a>
             </form>
         <?php endif; ?>
 
         <?php if (isLoggedIn()): ?>
             <button class="add-btn" onclick="window.location.href='ajouter-animal.php'">
-                ➕ <?php echo $view === 'animaux' ? 'Ajouter un animal' : 'Mon profil vétérinaire'; ?>
+                ➕ Ajouter un animal
             </button>
         <?php endif; ?>
     </aside>
@@ -464,7 +487,7 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
                     ?>
                     <a href="animal-details.php?id=<?php echo $animal['id']; ?>" class="card" <?php if ($animal['statut_adoption'] === 'ADOPTE') echo 'style="pointer-events:none; opacity:0.85;"'; ?>>
                         <div class="card-img">
-                            <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($animal['nom']); ?>">
+                            <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($animal['nom']); ?>" loading="lazy">
                             <div class="card-badge"><?php echo $animal['espece']; ?> • <?php echo $animal['age']; ?> an<?php echo $animal['age'] > 1 ? 's' : ''; ?></div>
                             <?php if ($animal['statut_adoption'] === 'ADOPTE'): ?>
                                 <div class="adopted-overlay"><span>🏠 Adopté</span></div>
@@ -489,7 +512,7 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
                             <div class="card-tags">
                                 <span class="tag"><?php echo $animal['sexe'] === 'MALE' ? '♂️ Mâle' : ($animal['sexe'] === 'FEMELLE' ? '♀️ Femelle' : 'Sexe inconnu'); ?></span>
                                 <span class="tag">📍 <?php
-                                    $animalRegion = $animal['vet_region'] ?? $animal['user_region'] ?? null;
+                                    $animalRegion = $animal['region'] ?? null;
                                     echo ($animalRegion && isset($regions[$animalRegion])) ? $regions[$animalRegion]['name'] : 'Tunisie';
                                     ?></span>
                             </div>
@@ -528,9 +551,17 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
             </div>
 
             <div class="cards">
-                <?php foreach ($vets as $vet): ?>
+                <?php foreach ($vets as $vet):
+                    $vetPhoto = !empty($vet['photo_profil']) ? $vet['photo_profil'] : null;
+                    ?>
                     <a href="veterinaire-details.php?id=<?php echo $vet['id']; ?>" class="card vet-card">
-                        <div class="vet-avatar">🩺</div>
+                        <div class="vet-avatar">
+                            <?php if ($vetPhoto): ?>
+                                <img src="<?php echo htmlspecialchars($vetPhoto); ?>" alt="Dr. <?php echo htmlspecialchars($vet['nom']); ?>">
+                            <?php else: ?>
+                                🩺
+                            <?php endif; ?>
+                        </div>
                         <div class="vet-info">
                             <h3>
                                 Dr. <?php echo htmlspecialchars($vet['prenom'] . ' ' . $vet['nom']); ?>

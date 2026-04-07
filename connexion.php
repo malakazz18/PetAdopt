@@ -100,13 +100,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['regName'])) {
                 
                 $stmt = $pdo->prepare("INSERT INTO veterinaires (nom, prenom, email, mot_de_passe, telephone, region, photo_diplome, statut_validation, adresse_cabinet, telephone_cabinet) VALUES (?, ?, ?, ?, ?, ?, ?, 'EN_ATTENTE', ?, ?)");
                 $stmt->execute([$nom, $prenom, $email, $hashedPassword, $phone, $region, $diplomaPath, $_POST['adresseCabinet'] ?? '', $_POST['telephoneCabinet'] ?? '']);
-                
-                $success = 'Compte vétérinaire créé ! En attente de validation par l\'administrateur.';
+                // Auto-login as vet after registration
+                $newVet = $pdo->prepare("SELECT * FROM veterinaires WHERE email = ?");
+                $newVet->execute([$email]);
+                $vetRow = $newVet->fetch();
+                $_SESSION['vet_id']       = $vetRow['id'];
+                $_SESSION['user_name']    = $prenom . ' ' . $nom;
+                $_SESSION['is_vet']       = true;
+                $_SESSION['vet_status']   = 'EN_ATTENTE';
+                $_SESSION['user_region']  = $region;
+                header('Location: accueil.php');
+                exit();
             } else {
                 $stmt = $pdo->prepare("INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, telephone, region) VALUES (?, ?, ?, ?, ?, ?)");
                 $stmt->execute([$nom, $prenom, $email, $hashedPassword, $phone, $region]);
-                
-                $success = 'Compte créé avec succès ! Vous pouvez maintenant vous connecter.';
+                // Auto-login after registration
+                $newUser = $pdo->prepare("SELECT * FROM utilisateurs WHERE email = ?");
+                $newUser->execute([$email]);
+                $userRow = $newUser->fetch();
+                $_SESSION['user_id']      = $userRow['id'];
+                $_SESSION['user_name']    = $prenom . ' ' . $nom;
+                $_SESSION['is_vet']       = false;
+                $_SESSION['user_region']  = $region;
+                header('Location: accueil.php');
+                exit();
             }
         } catch(PDOException $e) {
             if ($e->getCode() == 23000) {
@@ -163,10 +180,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['regName'])) {
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="logo">
+            <a href="accueil.php" style="text-decoration:none;"><div class="logo">
                 <div class="logo-icon">🐾</div>
                 <div class="logo-text">Pet<span>Adoption</span></div>
-            </div>
+            </div></a>
         </div>
     </nav>
 
@@ -191,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['regName'])) {
                 
                 <form method="POST">
                     <div class="form-group">
-                        <label>📧 Email (ou 'admin')</label>
+                        <label>📧 Email </label>
                         <input type="text" name="loginEmail" required placeholder="votre@email.com">
                     </div>
                     <div class="form-group">

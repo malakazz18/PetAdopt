@@ -8,7 +8,6 @@ if (!isLoggedIn() || !isVet()) {
 }
 
 $userId = getCurrentUserId();
-$vetEmail = $_SESSION['user_email'] ?? '';
 
 // Get vet info
 $stmt = $pdo->prepare("SELECT * FROM veterinaires WHERE id = ?");
@@ -19,10 +18,55 @@ if (!$vet) {
     die("Vétérinaire non trouvé");
 }
 
-// Get animals assigned to this vet (through utilisateurs email link)
+$success = '';
+$error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        verifyCsrf();
+
+        if (isset($_POST['update_profile'])) {
+            $nomCabinet = sanitizeString($_POST['nom_cabinet'] ?? '', 200);
+            $adresse = sanitizeString($_POST['adresse_cabinet'] ?? '', 500);
+            $telCabinet = sanitizeString($_POST['telephone_cabinet'] ?? '', 20);
+            $horaires = sanitizeString($_POST['horaires'] ?? '', 1000);
+            $latitude = sanitizeFloat($_POST['latitude'] ?? null, -90, 90) ?: null;
+            $longitude = sanitizeFloat($_POST['longitude'] ?? null, -180, 180) ?: null;
+
+            // Handle profile picture upload
+            $photoProfil = $vet['photo_profil'];
+            if (isset($_FILES['photo_profil']) && $_FILES['photo_profil']['error'] === UPLOAD_ERR_OK) {
+                $newPhoto = secureImageUpload($_FILES['photo_profil'], 'uploads/vets/', 2097152);
+                if ($newPhoto) {
+                    if ($photoProfil && file_exists($photoProfil)) {
+                        unlink($photoProfil);
+                    }
+                    $photoProfil = $newPhoto;
+                }
+            }
+
+            $stmt = $pdo->prepare("
+                UPDATE veterinaires 
+                SET nom_cabinet = ?, adresse_cabinet = ?, telephone_cabinet = ?, 
+                    horaires = ?, latitude = ?, longitude = ?, photo_profil = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$nomCabinet, $adresse, $telCabinet, $horaires, $latitude, $longitude, $photoProfil, $userId]);
+
+            $stmt = $pdo->prepare("SELECT * FROM veterinaires WHERE id = ?");
+            $stmt->execute([$userId]);
+            $vet = $stmt->fetch();
+
+            $success = "Profil mis à jour avec succès !";
+        }
+    } catch(Exception $e) {
+        $error = $e->getMessage();
+    }
+}
+
+// Get vet's animals
 $stmt = $pdo->prepare("
-    SELECT a.*, 
-           COUNT(da.id) as nb_demandes
+    SELECT a.*, COUNT(da.id) as nb_demandes
     FROM animaux a 
     JOIN utilisateurs u ON a.id_proprietaire = u.id
     LEFT JOIN annonces an ON a.id = an.id_animal
@@ -33,39 +77,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$vet['email']]);
 $vetAnimals = $stmt->fetchAll();
-
-// Handle profile update
-$success = '';
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update_profile'])) {
-        $nomCabinet = $_POST['nom_cabinet'] ?? '';
-        $adresse = $_POST['adresse_cabinet'] ?? '';
-        $telCabinet = $_POST['telephone_cabinet'] ?? '';
-        $horaires = $_POST['horaires'] ?? '';
-        $latitude = $_POST['latitude'] ?? null;
-        $longitude = $_POST['longitude'] ?? null;
-
-        try {
-            $stmt = $pdo->prepare("
-                UPDATE veterinaires 
-                SET nom_cabinet = ?, adresse_cabinet = ?, telephone_cabinet = ?, 
-                    horaires = ?, latitude = ?, longitude = ?
-                WHERE id = ?
-            ");
-            $stmt->execute([$nomCabinet, $adresse, $telCabinet, $horaires, $latitude, $longitude, $userId]);
-            $success = "Profil mis à jour avec succès !";
-
-            // Refresh data
-            $stmt = $pdo->prepare("SELECT * FROM veterinaires WHERE id = ?");
-            $stmt->execute([$userId]);
-            $vet = $stmt->fetch();
-        } catch(PDOException $e) {
-            $error = "Erreur lors de la mise à jour : " . $e->getMessage();
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -103,7 +114,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .logo { display: flex; align-items: center; gap: 0.5rem; }
         .logo-icon { font-size: 1.8rem; }
         .logo-text { font-size: 1.3rem; font-weight: bold; color: #2c5e2a; }
-        .logo-text span { color: #8b6946; }
         .nav-links { display: flex; gap: 2rem; list-style: none; }
         .nav-links a {
             text-decoration: none;
@@ -208,6 +218,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 3px rgba(44, 94, 42, 0.1);
         }
 
+        .file-upload {
+            border: 2px dashed #e0d5c8;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-upload:hover {
+            border-color: #2c5e2a;
+            background: #faf7f2;
+        }
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .current-photo {
+            margin-bottom: 1rem;
+        }
+        .current-photo img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e0d5c8;
+        }
+
         .btn-primary {
             background: #2c5e2a;
             color: white;
@@ -280,6 +317,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-bottom: none;
         }
 
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
         .footer {
             background: white;
             color: #9b9b9b;
@@ -299,18 +343,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 <header class="header">
     <nav class="nav">
-        <div class="logo">
-            <div class="logo-icon">🐾</div>
-            <div class="logo-text">Pet<span>Adoption</span></div>
-        </div>
+        <a href="accueil.php" style="text-decoration:none;"><div class="logo">
+                <div class="logo-icon">🐾</div>
+                <div class="logo-text">Pet<span>Adoption</span></div>
+            </div></a>
         <ul class="nav-links">
             <li><a href="accueil.php">Accueil</a></li>
             <li><a href="espace-veterinaire.php" class="active">Mon Cabinet</a></li>
-            <li><a href="ajouter-animal.php">Ajouter un animal</a></li>
+            <!-- Removed: Ajouter un animal link -->
             <li><a href="mon-espace.php">Mon Espace</a></li>
         </ul>
         <div style="display: flex; align-items: center; gap: 1rem;">
-            <span style="color: #4a4a4a;"><?php echo $_SESSION['user_name']; ?> ⭐</span>
+            <span style="color: #4a4a4a;"><?php echo e($_SESSION['user_name']); ?> ⭐</span>
             <button class="btn btn-secondary" onclick="window.location.href='logout.php'">Déconnexion</button>
         </div>
     </nav>
@@ -319,49 +363,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="container">
     <div class="page-header">
         <span class="badge-vet">⭐ Vétérinaire Vérifié</span>
-        <h1>Dr. <?php echo htmlspecialchars($vet['prenom'] . ' ' . $vet['nom']); ?></h1>
+        <h1>Dr. <?php echo e($vet['prenom'] . ' ' . $vet['nom']); ?></h1>
         <p style="color: #6b5a4a; margin-top: 0.5rem;">Gérez votre cabinet et vos animaux disponibles</p>
     </div>
 
     <?php if ($success): ?>
-        <div class="alert alert-success"><?php echo $success; ?></div>
+        <div class="alert alert-success"><?php echo e($success); ?></div>
     <?php endif; ?>
     <?php if ($error): ?>
-        <div class="alert alert-error"><?php echo $error; ?></div>
+        <div class="alert alert-error"><?php echo e($error); ?></div>
     <?php endif; ?>
 
     <div class="grid">
         <!-- Clinic Info -->
         <div class="card">
             <h2>🏥 Informations du Cabinet</h2>
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
+                <?php echo csrfField(); ?>
                 <input type="hidden" name="update_profile" value="1">
 
                 <div class="form-group">
+                    <label>Photo de profil</label>
+                    <?php if (!empty($vet['photo_profil'])): ?>
+                        <div class="current-photo">
+                            <img src="<?php echo e($vet['photo_profil']); ?>" alt="Photo actuelle">
+                        </div>
+                    <?php endif; ?>
+                    <label class="file-upload">
+                        <input type="file" name="photo_profil" accept="image/jpeg,image/png,image/webp">
+                        <div>📷 Cliquez pour ajouter/modifier la photo (max 2MB)</div>
+                        <small style="color: #8b6946;">Formats: JPG, PNG, WebP</small>
+                    </label>
+                </div>
+
+                <div class="form-group">
                     <label>Nom du Cabinet</label>
-                    <input type="text" name="nom_cabinet" value="<?php echo htmlspecialchars($vet['nom_cabinet'] ?? ''); ?>" placeholder="Ex: Cabinet Vétérinaire du Centre">
+                    <input type="text" name="nom_cabinet" value="<?php echo e($vet['nom_cabinet'] ?? ''); ?>" placeholder="Ex: Cabinet Vétérinaire du Centre" maxlength="200">
                 </div>
 
                 <div class="form-group">
                     <label>Adresse</label>
-                    <textarea name="adresse_cabinet" rows="2" placeholder="Adresse complète..."><?php echo htmlspecialchars($vet['adresse_cabinet'] ?? ''); ?></textarea>
+                    <textarea name="adresse_cabinet" rows="2" placeholder="Adresse complète..." maxlength="500"><?php echo e($vet['adresse_cabinet'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Téléphone du Cabinet</label>
-                    <input type="tel" name="telephone_cabinet" value="<?php echo htmlspecialchars($vet['telephone_cabinet'] ?? ''); ?>" placeholder="20 123 456">
+                    <input type="tel" name="telephone_cabinet" value="<?php echo e($vet['telephone_cabinet'] ?? ''); ?>" placeholder="20 123 456" maxlength="20">
                 </div>
 
                 <div class="form-group">
                     <label>Horaires d'ouverture</label>
-                    <textarea name="horaires" rows="3" placeholder="Lun-Ven: 9h-18h&#10;Sam: 9h-12h&#10;Dim: Fermé"><?php echo htmlspecialchars($vet['horaires'] ?? ''); ?></textarea>
+                    <textarea name="horaires" rows="3" placeholder="Lun-Ven: 9h-18h&#10;Sam: 9h-12h" maxlength="1000"><?php echo e($vet['horaires'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="form-group">
                     <label>Coordonnées GPS (pour la carte)</label>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <input type="text" name="latitude" value="<?php echo htmlspecialchars($vet['latitude'] ?? ''); ?>" placeholder="Latitude (ex: 36.8065)">
-                        <input type="text" name="longitude" value="<?php echo htmlspecialchars($vet['longitude'] ?? ''); ?>" placeholder="Longitude (ex: 10.1815)">
+                        <input type="number" step="any" name="latitude" value="<?php echo e($vet['latitude'] ?? ''); ?>" placeholder="Latitude (ex: 36.8065)" min="-90" max="90">
+                        <input type="number" step="any" name="longitude" value="<?php echo e($vet['longitude'] ?? ''); ?>" placeholder="Longitude (ex: 10.1815)" min="-180" max="180">
                     </div>
                     <small style="color: #8b6946;">Laissez vide pour masquer la carte</small>
                 </div>
@@ -381,7 +440,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
                     L.marker([<?php echo $vet['latitude']; ?>, <?php echo $vet['longitude']; ?>])
                         .addTo(map)
-                        .bindPopup("<?php echo htmlspecialchars($vet['nom_cabinet'] ?? 'Cabinet'); ?>");
+                        .bindPopup("<?php echo e($vet['nom_cabinet'] ?? 'Cabinet'); ?>");
                 </script>
             <?php else: ?>
                 <div style="background: #f5f0e8; border-radius: 12px; height: 300px; display: flex; align-items: center; justify-content: center; color: #8b6946;">
@@ -395,15 +454,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div style="margin-top: 1.5rem;">
                 <div class="info-row">
                     <span>📍 Adresse</span>
-                    <strong><?php echo htmlspecialchars($vet['adresse_cabinet'] ?? 'Non renseignée'); ?></strong>
+                    <strong><?php echo e($vet['adresse_cabinet'] ?? 'Non renseignée'); ?></strong>
                 </div>
                 <div class="info-row">
                     <span>📞 Téléphone</span>
-                    <strong><?php echo htmlspecialchars($vet['telephone_cabinet'] ?? 'Non renseigné'); ?></strong>
+                    <strong><?php echo e($vet['telephone_cabinet'] ?? 'Non renseigné'); ?></strong>
                 </div>
                 <div class="info-row">
                     <span>⏰ Horaires</span>
-                    <strong style="white-space: pre-line;"><?php echo htmlspecialchars($vet['horaires'] ?? 'Non renseignés'); ?></strong>
+                    <strong style="white-space: pre-line;"><?php echo nl2br(e($vet['horaires'] ?? 'Non renseignés')); ?></strong>
                 </div>
             </div>
         </div>
@@ -411,16 +470,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Animals Section -->
     <div class="card" style="margin-top: 2rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div class="section-header">
             <h2>🐾 Animaux à adopter dans votre cabinet</h2>
-            <a href="ajouter-animal.php" class="btn-primary">➕ Ajouter un animal</a>
+            <!-- Removed: Ajouter un animal button -->
         </div>
 
         <?php if (empty($vetAnimals)): ?>
             <div style="text-align: center; padding: 3rem; background: #faf7f2; border-radius: 12px;">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">🐾</div>
                 <p style="color: #8b6946;">Vous n'avez pas encore d'animaux en adoption</p>
-                <a href="ajouter-animal.php" class="btn-primary" style="display: inline-block; margin-top: 1rem;">Ajouter votre premier animal</a>
+                <p style="color: #9b9b9b; font-size: 0.9rem; margin-top: 0.5rem;">Les animaux que vous ajoutez depuis votre espace personnel apparaîtront ici</p>
             </div>
         <?php else: ?>
             <div class="animal-grid">
@@ -428,9 +487,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $photo = !empty($animal['photos']) ? explode(',', $animal['photos'])[0] : 'https://via.placeholder.com/200x150?text=Pas+d%27image';
                     ?>
                     <div class="animal-card">
-                        <img src="<?php echo htmlspecialchars($photo); ?>" alt="<?php echo htmlspecialchars($animal['nom']); ?>">
-                        <h4 style="color: #2c5e2a; margin-bottom: 0.3rem;"><?php echo htmlspecialchars($animal['nom']); ?></h4>
-                        <p style="color: #8b6946; font-size: 0.85rem; margin-bottom: 0.5rem;"><?php echo $animal['espece']; ?></p>
+                        <img src="<?php echo e($photo); ?>" alt="<?php echo e($animal['nom']); ?>" loading="lazy">
+                        <h4 style="color: #2c5e2a; margin-bottom: 0.3rem;"><?php echo e($animal['nom']); ?></h4>
+                        <p style="color: #8b6946; font-size: 0.85rem; margin-bottom: 0.5rem;"><?php echo e($animal['espece']); ?></p>
                         <?php if ($animal['nb_demandes'] > 0): ?>
                             <span style="background: #ffd700; color: #333; padding: 0.2rem 0.6rem; border-radius: 10px; font-size: 0.75rem; font-weight: bold;">
                                 <?php echo $animal['nb_demandes']; ?> demande(s)
