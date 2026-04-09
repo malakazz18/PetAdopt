@@ -254,9 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['regName'])) {
                 <p>Accédez à votre espace personnel</p>
             </div>
 
-            <div class="emergency-notice">
-
-            </div>
+        
 
             <?php if ($error && !isset($_POST['regName'])): ?>
                 <div class="error-message"><?php echo $error; ?></div>

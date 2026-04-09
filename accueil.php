@@ -310,6 +310,43 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
             .sidebar { width: 100%; position: static; max-height: none; }
             .main-tabs-container { flex-wrap: wrap; }
         }
+        /* Critique Overlay - style similaire à adopted-overlay */
+.critique-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(218, 145, 151, 0.38);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.critique-overlay span {
+    background: #dc3545;
+    color: white;
+    font-weight: 800;
+    font-size: 1.1rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 30px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    animation: pulse-critical 1.5s infinite;
+}
+
+@keyframes pulse-critical {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+    }
+}
     </style>
 </head>
 <body>
@@ -484,23 +521,30 @@ $totalAdoptions = $pdo->query("SELECT COUNT(*) FROM animaux WHERE statut_adoptio
                     ?>
                     <a href="animal-details.php?id=<?php echo $animal['id']; ?>" class="card" <?php if ($animal['statut_adoption'] === 'ADOPTE') echo 'style="pointer-events:none; opacity:0.85;"'; ?>>
                         <div class="card-img">
-                            <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($animal['nom']); ?>" loading="lazy">
-                            <div class="card-badge"><?php echo $animal['espece']; ?> • <?php echo $animal['age']; ?> an<?php echo $animal['age'] > 1 ? 's' : ''; ?></div>
-                            <?php if ($animal['statut_adoption'] === 'ADOPTE'): ?>
-                                <div class="adopted-overlay"><span>🏠 Adopté</span></div>
-                            <?php elseif ($animal['vet_status'] === 'VALIDE'): ?>
-                                <div class="vet-badge">⭐ Vétérinaire</div>
-                            <?php elseif ($animal['vet_status'] === 'EN_ATTENTE'): ?>
-                                <div class="vet-badge-pending">⏳ Vétérinaire</div>
-                            <?php elseif ($animal['statut_adoption'] === 'EN_COURS'): ?>
-                                <div class="status-badge status-EN_COURS">En cours</div>
-                            <?php endif; ?>
-                            <div class="card-badges">
-                                <?php if ($animal['sterilise']): ?><span class="mini-badge">Stérilisé</span><?php endif; ?>
-                                <?php if ($animal['vaccine']): ?><span class="mini-badge">Vacciné</span><?php endif; ?>
-                                <?php if ($animal['errant']): ?><span class="mini-badge">Errant</span><?php endif; ?>
-                            </div>
-                        </div>
+    <img src="<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($animal['nom']); ?>" loading="lazy">
+    <div class="card-badge"><?php echo $animal['espece']; ?> • <?php echo $animal['age']; ?> an<?php echo $animal['age'] > 1 ? 's' : ''; ?></div>
+    
+    <!-- Overlay CRITIQUE -->
+    <?php if (($animal['statut_sante'] ?? 'STABLE') === 'CRITIQUE'): ?>
+        <div class="critique-overlay"><span>🚨 CRITIQUE</span></div>
+    <?php endif; ?>
+    
+    <?php if ($animal['statut_adoption'] === 'ADOPTE'): ?>
+        <div class="adopted-overlay"><span>🏠 Adopté</span></div>
+    <?php elseif ($animal['vet_status'] === 'VALIDE'): ?>
+        <div class="vet-badge">⭐ Vétérinaire</div>
+    <?php elseif ($animal['vet_status'] === 'EN_ATTENTE'): ?>
+        <div class="vet-badge-pending">⏳ Vétérinaire</div>
+    <?php elseif ($animal['statut_adoption'] === 'EN_COURS'): ?>
+        <div class="status-badge status-EN_COURS">En cours</div>
+    <?php endif; ?>
+    
+    <div class="card-badges">
+        <?php if ($animal['sterilise']): ?><span class="mini-badge">Stérilisé</span><?php endif; ?>
+        <?php if ($animal['vaccine']): ?><span class="mini-badge">Vacciné</span><?php endif; ?>
+        <?php if ($animal['errant']): ?><span class="mini-badge">Errant</span><?php endif; ?>
+    </div>
+</div>
                         <div class="card-content">
                             <div class="card-header">
                                 <h3><?php echo htmlspecialchars($animal['nom']); ?></h3>

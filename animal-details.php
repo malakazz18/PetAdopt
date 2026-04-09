@@ -69,9 +69,47 @@ if (isLoggedIn()) {
         .container { max-width: 1200px; margin: 100px auto 40px; padding: 0 2rem; }
         .back-link { display: inline-flex; align-items: center; gap: 0.5rem; color: #8b6946; text-decoration: none; margin-bottom: 1.5rem; font-weight: 500; }
 
-        .pet-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        .gallery { position: relative; background: #f5f0e8; min-height: 500px; }
-        .main-image { width: 100%; height: 500px; object-fit: cover; }
+       .pet-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.gallery {
+    position: relative;
+    background: #1a1a1a;
+    width: 100%;
+    height: auto;
+    min-height: 500px;
+    overflow: hidden;
+    display: flex;
+}
+
+.main-image {
+    width: 100%;
+    height: auto;
+    min-height: 500px;
+    object-fit: cover;
+    object-position: center;
+    flex-shrink: 0;
+}
+
+/* Version mobile */
+@media (max-width: 968px) {
+    .pet-container {
+        grid-template-columns: 1fr;
+    }
+    .gallery {
+        min-height: 350px;
+    }
+    .main-image {
+        min-height: 350px;
+    }
+}
         .image-nav { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
         .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.5); cursor: pointer; border: 2px solid white; }
         .dot.active { background: #2c5e2a; }
@@ -332,6 +370,34 @@ if (isLoggedIn()) {
         .addTo(map)
         .bindPopup("📍 <?php echo e($animal['nom']); ?> a été signalé ici");
     <?php endif; ?>
+</script>
+<script>
+function resizeImage() {
+    const gallery = document.querySelector('.gallery');
+    const mainImage = document.getElementById('mainImage');
+    
+    if (gallery && mainImage) {
+        // Force l'image à prendre toute la hauteur
+        mainImage.style.height = gallery.offsetHeight + 'px';
+        mainImage.style.width = '100%';
+        mainImage.style.objectFit = 'cover';
+    }
+}
+
+// Exécuter au chargement et au redimensionnement
+window.addEventListener('load', resizeImage);
+window.addEventListener('resize', resizeImage);
+
+// Pour le changement d'image
+function changeImage(src, dot) {
+    const mainImage = document.getElementById('mainImage');
+    mainImage.src = src;
+    mainImage.onload = function() {
+        resizeImage();
+    };
+    document.querySelectorAll('.dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+}
 </script>
 </body>
 </html>

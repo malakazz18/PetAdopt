@@ -1,7 +1,7 @@
 <?php
 // ── Database ────────────────────────────────────────────────────
 $host     = 'localhost';
-$dbname   = 'petadopt';
+$dbname   = 'PetAdopt';
 $username = 'root';
 $password = '';
 
