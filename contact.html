@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact - PetAdoption</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #faf7f2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c5e2a;
+        }
+
+        .logo-text span {
+            color: #8b6946;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #5a5a5a;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #2c5e2a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 100px auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        h1 {
+            color: #2c5e2a;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid #f0e8df;
+        }
+
+        .card h3 {
+            color: #8b6946;
+            margin-bottom: 1rem;
+        }
+
+        .card p {
+            color: #5a5a5a;
+            line-height: 1.6;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a4a4a;
+            font-weight: 500;
+        }
+
+        .required {
+            color: #c96b4a;
+            margin-left: 0.2rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0d5c8;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2c5e2a;
+            box-shadow: 0 0 0 3px rgba(44, 94, 42, 0.1);
+        }
+
+        input.error, textarea.error, select.error {
+            border-color: #c96b4a;
+            background-color: #fff5f2;
+        }
+
+        .error-message {
+            color: #c96b4a;
+            font-size: 0.8rem;
+            margin-top: 0.3rem;
+            display: block;
+        }
+
+        button {
+            background: #2c5e2a;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1e461c;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background: #2c5e2a;
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .footer {
+            background: white;
+            color: #9b9b9b;
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid #f0e8df;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+<header class="header">
+    <nav class="nav">
+        <a href="accueil.php" style="text-decoration:none;"><div class="logo">
+            <div class="logo-icon">🐾</div>
+            <div class="logo-text">Pet<span>Adoption</span></div>
+        </div></a>
+        <ul class="nav-links">
+            <li><a href="accueil.php">Accueil</a></li>
+            <li><a href="aider.html">En savoir plus</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="connexion.php">Connexion</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+    <h1>📞 Contact</h1>
+
+    <div class="card">
+        <h3>📍 Nos coordonnées</h3>
+        <p>📍 Tunisie</p>
+        <p>📞 20 123 456</p>
+        <p>📧 petadoption@gmail.com</p>
+    </div>
+
+    <div class="card">
+        <h3>📩 Envoyer un message</h3>
+        <form id="contactForm">
+            <div class="form-group">
+                <label for="name">
+                    Nom complet
+                    <span class="required">*</span>
+                </label>
+                <input type="text" id="name" name="name" placeholder="Votre nom">
+                <span id="nameError" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">
+                    Adresse email
+                    <span class="required">*</span>
+                </label>
+                <input type="email" id="email" name="email" placeholder="Votre email">
+                <span id="emailError" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="subject">
+                    Sujet
+                    <span class="required">*</span>
+                </label>
+                <select id="subject" name="subject">
+                    <option value="">-- Sélectionnez un sujet --</option>
+                    <option value="question">❓ Posez une question concernant nos services</option>
+                    <option value="autre">📝 Autre demande</option>
+                </select>
+                <span id="subjectError" class="error-message"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="message">
+                    Message
+                    <span class="required">*</span>
+                </label>
+                <textarea id="message" rows="5" placeholder="Votre message"></textarea>
+                <span id="messageError" class="error-message"></span>
+            </div>
+
+            <button type="submit" id="submitBtn">Envoyer</button>
+        </form>
+        <div id="formSuccess" style="display: none;" class="success-message">
+            ✅ Votre message a été envoyé avec succès ! Nous vous répondrons dans les plus brefs délais.
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>🐾 PetAdoption - Refuge pour animaux en Tunisie</p>
+    <p>📍 Tunisie | 📞 20 123 456 | ✉️ petadoption@gmail.com</p>
+</footer>
+
+<script>
+    // Fonction de validation du nom
+    function validateName(name) {
+        if (!name || name.trim() === "") {
+            return "Le nom est obligatoire";
+        }
+        if (name.trim().length < 2) {
+            return "Le nom doit contenir au moins 2 caractères";
+        }
+        if (name.trim().length > 50) {
+            return "Le nom ne peut pas dépasser 50 caractères";
+        }
+        if (!/^[a-zA-ZÀ-ÿ\s\-']+$/.test(name.trim())) {
+            return "Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes";
+        }
+        return "";
+    }
+
+    // Fonction de validation de l'email
+    function validateEmail(email) {
+        if (!email || email.trim() === "") {
+            return "L'email est obligatoire";
+        }
+        const emailRegex = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+        if (!emailRegex.test(email.trim())) {
+            return "Veuillez entrer une adresse email valide (ex: nom@domaine.com)";
+        }
+        if (email.trim().length > 100) {
+            return "L'email ne peut pas dépasser 100 caractères";
+        }
+        return "";
+    }
+
+    // Fonction de validation du sujet
+    function validateSubject(subject) {
+        if (!subject || subject === "") {
+            return "Veuillez sélectionner un sujet";
+        }
+        return "";
+    }
+
+    // Fonction de validation du message
+    function validateMessage(message) {
+        if (!message || message.trim() === "") {
+            return "Le message est obligatoire";
+        }
+        if (message.trim().length < 10) {
+            return "Le message doit contenir au moins 10 caractères";
+        }
+        if (message.trim().length > 2000) {
+            return "Le message ne peut pas dépasser 2000 caractères";
+        }
+        return "";
+    }
+
+    // Fonction pour mettre à jour l'état du bouton
+    function updateSubmitButton() {
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const subject = document.getElementById("subject").value;
+        const message = document.getElementById("message").value;
+        
+        const isValid = name && name.trim() !== "" &&
+                       email && email.trim() !== "" &&
+                       subject && subject !== "" &&
+                       message && message.trim() !== "" &&
+                       validateName(name) === "" &&
+                       validateEmail(email) === "" &&
+                       validateSubject(subject) === "" &&
+                       validateMessage(message) === "";
+        
+        document.getElementById("submitBtn").disabled = !isValid;
+    }
+
+    // Fonction pour valider tous les champs en temps réel
+    function validateField(fieldId, validator, errorId) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(errorId);
+        const value = field.value;
+        
+        const errorMessage = validator(value);
+        
+        if (errorMessage) {
+            error.textContent = errorMessage;
+            field.classList.add("error");
+            return false;
+        } else {
+            error.textContent = "";
+            field.classList.remove("error");
+            return true;
+        }
+    }
+
+    // Ajouter les écouteurs d'événements
+    document.getElementById("name").addEventListener("input", function() {
+        validateField("name", validateName, "nameError");
+        updateSubmitButton();
+    });
+    
+    document.getElementById("name").addEventListener("blur", function() {
+        validateField("name", validateName, "nameError");
+        updateSubmitButton();
+    });
+    
+    document.getElementById("email").addEventListener("input", function() {
+        validateField("email", validateEmail, "emailError");
+        updateSubmitButton();
+    });
+    
+    document.getElementById("email").addEventListener("blur", function() {
+        validateField("email", validateEmail, "emailError");
+        updateSubmitButton();
+    });
+    
+    document.getElementById("subject").addEventListener("change", function() {
+        validateField("subject", validateSubject, "subjectError");
+        updateSubmitButton();
+    });
+    
+    document.getElementById("message").addEventListener("input", function() {
+        validateField("message", validateMessage, "messageError");
+        updateSubmitButton();
+    });
+    
+    document.getElementById("message").addEventListener("blur", function() {
+        validateField("message", validateMessage, "messageError");
+        updateSubmitButton();
+    });
+
+    // Validation du formulaire avant soumission
+    document.getElementById("contactForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        
+        // Valider tous les champs
+        const isNameValid = validateField("name", validateName, "nameError");
+        const isEmailValid = validateField("email", validateEmail, "emailError");
+        const isSubjectValid = validateField("subject", validateSubject, "subjectError");
+        const isMessageValid = validateField("message", validateMessage, "messageError");
+        
+        // Vérifier si tous les champs obligatoires sont valides
+        if (isNameValid && isEmailValid && isSubjectValid && isMessageValid) {
+            const submitBtn = document.getElementById("submitBtn");
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Envoi en cours...";
+            
+            // Récupérer les données du formulaire
+            const formData = {
+                name: document.getElementById("name").value.trim(),
+                email: document.getElementById("email").value.trim(),
+                subject: document.getElementById("subject").value,
+                message: document.getElementById("message").value.trim(),
+                date: new Date().toISOString()
+            };
+            
+            // Sauvegarder dans localStorage pour simulation
+            let messages = JSON.parse(localStorage.getItem("contactMessages") || "[]");
+            messages.push(formData);
+            localStorage.setItem("contactMessages", JSON.stringify(messages));
+            
+            // Afficher le message de succès
+            setTimeout(() => {
+                document.getElementById("formSuccess").style.display = "block";
+                document.getElementById("contactForm").reset();
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Envoyer";
+                updateSubmitButton();
+                
+                // Masquer le message de succès après 5 secondes
+                setTimeout(() => {
+                    document.getElementById("formSuccess").style.display = "none";
+                }, 5000);
+            }, 500);
+        } else {
+            // Faire défiler jusqu'au premier champ invalide
+            const firstError = document.querySelector(".error");
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+        }
+    });
+    
+    // Initialiser l'état du bouton au chargement
+    updateSubmitButton();
+</script>
+</body>
+</html>
