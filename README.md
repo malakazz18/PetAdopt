@@ -1,13 +1,13 @@
 # PetAdopt
 🐾 PetAdoption — Plateforme d'adoption d'animaux en Tunisie
 
-A full-stack PHP web platform connecting animal owners, adopters, and veterinarians across Tunisia.
+A full-stack PHP web platform for university projet that connects animal owners, adopters, and veterinarians across Tunisia.
 
 
-📋 Overview
+📋 Overview:  
 PetAdoption is a web application built for the Tunisian market that allows users to post animals for adoption, browse available pets by region, submit adoption requests, and connect with verified veterinarians. An admin panel provides full control over users, animals, and vet validation.
 
-✨ Features
+✨ Features:  
 🐕 For Adopters
 
 Browse animals available for adoption filtered by region, species, weight, age, vaccination status, and more
