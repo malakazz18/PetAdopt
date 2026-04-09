@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>En savoir plus - PetAdoption</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #faf7f2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c5e2a;
+        }
+
+        .logo-text span {
+            color: #8b6946;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #5a5a5a;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #2c5e2a;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 100px auto;
+            padding: 20px;
+            flex: 1;
+        }
+
+        h1 {
+            color: #2c5e2a;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin: 1rem 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 1px solid #f0e8df;
+        }
+
+        .card h3 {
+            color: #8b6946;
+            margin-bottom: 0.5rem;
+        }
+
+        .card p {
+            color: #5a5a5a;
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: white;
+            color: #9b9b9b;
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid #f0e8df;
+            margin-top: auto;
+        }
+    </style>
+</head>
+
+<body>
+<header class="header">
+    <nav class="nav">
+        <a href="accueil.php" style="text-decoration:none;"><div class="logo">
+            <div class="logo-icon">🐾</div>
+            <div class="logo-text">Pet<span>Adoption</span></div>
+        </div></a>
+        <ul class="nav-links">
+            <li><a href="accueil.php">Accueil</a></li>
+            <li><a href="aider.html">En savoir plus</a></li>
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="connexion.php">Connexion</a></li>
+        </ul>
+    </nav>
+</header>
+
+<div class="container">
+    <h1>🐾 Questions Fréquentes</h1>
+
+    <div class="card">
+        <h3>Comment utiliser le site ?</h3>
+        <p>Créez un compte puis explorez les animaux disponibles à l'adoption près de chez vous.</p>
+    </div>
+
+    <div class="card">
+        <h3>Puis-je aider sans adopter ?</h3>
+        <p>Oui, partagez les profils ou faites un don aux refuges partenaires ❤️</p>
+    </div>
+
+    <div class="card">
+        <h3>Est-ce gratuit ?</h3>
+        <p>L'adoption via notre plateforme est gratuite, mais des frais peuvent exister selon le refuge.</p>
+    </div>
+
+    <div class="card">
+        <h3>Puis-je revenir en arrière si ça ne se passe pas bien ?</h3>
+        <p>Oui. Si l'adoption ne fonctionne pas, l'animal doit être rendu au propriétaire qui l'a confié. Cela permet de garantir sa sécurité et de lui trouver une nouvelle famille.</p>
+    </div>
+
+    <div class="card">
+        <h3>Combien de temps faut-il pour adopter ?</h3>
+        <p>En général, comptez entre 3 jours et 1 semaine selon les disponibilités.</p>
+    </div>
+
+    <div class="card">
+        <h3>Comment se déroule le processus d'adoption ?</h3>
+        <p>Vous commencez par consulter les profils des animaux disponibles. Lorsque vous avez un coup de cœur, cliquez sur "Je veux l'adopter". Le propriétaire vous contactera.</p>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>🐾 PetAdoption - Refuge pour animaux en Tunisie</p>
+    <p>📍 Tunisie | 📞 20 123 456 | ✉️ <a href="/cdn-cgi/l/email-protection" class="__cf_email_
