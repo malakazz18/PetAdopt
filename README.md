@@ -52,7 +52,7 @@ petadoption/
  Prérequis
 - PHP 8.0+
 - MySQL / MariaDB
-- Serveur local : [XAMPP](https://www.apachefriends.org/) ou [Laragon](https://laragon.org/)
+- Serveur local : [XAMPP](https://www.apachefriends.org/) 
 
  👥 Rôles utilisateurs
 
