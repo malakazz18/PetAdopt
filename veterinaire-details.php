@@ -330,7 +330,39 @@ $hasCoordinates = true;
             <?php if (!empty($vet['horaires'])): ?>
                 <div class="info-row">
                     <div class="info-label">Horaires</div>
-                    <div class="info-value" style="white-space: pre-line;"><?php echo nl2br(htmlspecialchars($vet['horaires'])); ?></div>
+                    <div class="info-value">
+                        <?php
+                        $rawH = html_entity_decode($vet['horaires'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $scheduleH = json_decode($rawH, true);
+                        $dayLabels = [
+                                'lundi'=>'Lundi','mardi'=>'Mardi','mercredi'=>'Mercredi',
+                                'jeudi'=>'Jeudi','vendredi'=>'Vendredi','samedi'=>'Samedi','dimanche'=>'Dimanche'
+                        ];
+                        if (is_array($scheduleH)):
+                            ?>
+                            <table style="border-collapse:collapse;width:100%;font-size:0.88rem;">
+                                <?php foreach ($dayLabels as $dk => $dl):
+                                    $d = $scheduleH[$dk] ?? [];
+                                    $open = !empty($d['open']);
+                                    ?>
+                                    <tr style="border-bottom:1px solid #f0e8df;">
+                                        <td style="padding:0.3rem 0.6rem 0.3rem 0;font-weight:600;color:#4a4a4a;width:90px;"><?php echo $dl; ?></td>
+                                        <td style="padding:0.3rem 0;">
+                                            <?php if ($open): ?>
+                                                <span style="color:#2c5e2a;font-weight:500;">
+                                            <?php echo e($d['from']); ?> – <?php echo e($d['to']); ?>
+                                        </span>
+                                            <?php else: ?>
+                                                <span style="color:#9b9b9b;">Fermé</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </table>
+                        <?php else: ?>
+                            <span style="white-space:pre-line;"><?php echo nl2br(htmlspecialchars($rawH)); ?></span>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php endif; ?>
         </div>

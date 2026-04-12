@@ -306,6 +306,58 @@ $vetAnimals = $stmt->fetchAll();
             border: 1px solid #c96b4a;
         }
 
+        .schedule-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-top: 0.5rem;
+        }
+        .schedule-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.6rem 1rem;
+            background: #faf7f2;
+            border-radius: 10px;
+            border: 1px solid #e0d5c8;
+        }
+        .day-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            min-width: 110px;
+            font-weight: 500;
+            color: #4a4a4a;
+        }
+        .day-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2c5e2a;
+            cursor: pointer;
+        }
+        .day-times {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            transition: opacity 0.2s;
+        }
+        .time-input {
+            width: 110px !important;
+            padding: 0.4rem 0.6rem !important;
+            border: 1px solid #e0d5c8;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .time-sep { color: #8b6946; font-weight: bold; }
+        .day-status {
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 45px;
+            text-align: right;
+        }
+
         .info-row {
             display: flex;
             justify-content: space-between;
@@ -412,8 +464,71 @@ $vetAnimals = $stmt->fetchAll();
                 </div>
 
                 <div class="form-group">
-                    <label>Horaires d'ouverture</label>
-                    <textarea name="horaires" rows="3" placeholder="Lun-Ven: 9h-18h&#10;Sam: 9h-12h" maxlength="1000"><?php echo e(str_replace('\n', "\n", html_entity_decode($vet['horaires'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'))); ?></textarea>
+                    <label>⏰ Horaires d'ouverture</label>
+                    <?php
+                    $days = [
+                            'lundi'     => 'Lundi',
+                            'mardi'     => 'Mardi',
+                            'mercredi'  => 'Mercredi',
+                            'jeudi'     => 'Jeudi',
+                            'vendredi'  => 'Vendredi',
+                            'samedi'    => 'Samedi',
+                            'dimanche'  => 'Dimanche',
+                    ];
+                    $scheduleData = [];
+                    $rawHoraires = html_entity_decode($vet['horaires'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    $decoded = json_decode($rawHoraires, true);
+                    if (is_array($decoded)) {
+                        $scheduleData = $decoded;
+                    }
+                    ?>
+                    <div class="schedule-grid">
+                        <?php foreach ($days as $key => $label):
+                            $dayData   = $scheduleData[$key] ?? [];
+                            $isOpen    = !empty($dayData['open']);
+                            $openTime  = $dayData['from'] ?? '09:00';
+                            $closeTime = $dayData['to']   ?? '18:00';
+                            ?>
+                            <div class="schedule-row" id="row-<?php echo $key; ?>">
+                                <label class="day-toggle">
+                                    <input type="checkbox" name="schedule[<?php echo $key; ?>][open]" value="1"
+                                            <?php echo $isOpen ? 'checked' : ''; ?>
+                                           onchange="toggleDay('<?php echo $key; ?>', this.checked)">
+                                    <span class="day-name"><?php echo $label; ?></span>
+                                </label>
+                                <div class="day-times" id="times-<?php echo $key; ?>" style="<?php echo $isOpen ? '' : 'opacity:0.35;pointer-events:none;'; ?>">
+                                    <input type="time" name="schedule[<?php echo $key; ?>][from]" value="<?php echo e($openTime); ?>" class="time-input">
+                                    <span class="time-sep">→</span>
+                                    <input type="time" name="schedule[<?php echo $key; ?>][to]" value="<?php echo e($closeTime); ?>" class="time-input">
+                                </div>
+                                <span class="day-status" id="status-<?php echo $key; ?>" style="color:<?php echo $isOpen ? '#2c5e2a' : '#9b9b9b'; ?>"><?php echo $isOpen ? 'Ouvert' : 'Fermé'; ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <input type="hidden" name="horaires" id="horaires_json">
+                    <script>
+                        function toggleDay(key, isOpen) {
+                            const times  = document.getElementById('times-'  + key);
+                            const status = document.getElementById('status-' + key);
+                            times.style.opacity       = isOpen ? '1'    : '0.35';
+                            times.style.pointerEvents = isOpen ? 'auto' : 'none';
+                            status.textContent        = isOpen ? 'Ouvert' : 'Fermé';
+                            status.style.color        = isOpen ? '#2c5e2a' : '#9b9b9b';
+                        }
+                        document.querySelector('form').addEventListener('submit', function() {
+                            const days = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+                            const schedule = {};
+                            days.forEach(function(day) {
+                                const cb   = document.querySelector('input[name="schedule[' + day + '][open]"]');
+                                const from = document.querySelector('input[name="schedule[' + day + '][from]"]');
+                                const to   = document.querySelector('input[name="schedule[' + day + '][to]"]');
+                                schedule[day] = cb && cb.checked
+                                    ? { open: true, from: from.value, to: to.value }
+                                    : { open: false };
+                            });
+                            document.getElementById('horaires_json').value = JSON.stringify(schedule);
+                        });
+                    </script>
                 </div>
 
                 <div class="form-group">
@@ -462,7 +577,28 @@ $vetAnimals = $stmt->fetchAll();
                 </div>
                 <div class="info-row">
                     <span>⏰ Horaires</span>
-                    <strong style="white-space: pre-line;"><?php echo nl2br(e(str_replace('\n', "\n", html_entity_decode($vet['horaires'] ?? 'Non renseignés', ENT_QUOTES | ENT_HTML5, 'UTF-8')))); ?></strong>
+                    <div>
+                        <?php
+                        $rawHDisplay = html_entity_decode($vet['horaires'] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                        $schedDisplay = json_decode($rawHDisplay, true);
+                        $dayNamesDisplay = ['lundi'=>'Lun','mardi'=>'Mar','mercredi'=>'Mer','jeudi'=>'Jeu','vendredi'=>'Ven','samedi'=>'Sam','dimanche'=>'Dim'];
+                        if (is_array($schedDisplay)):
+                            foreach ($dayNamesDisplay as $dk => $dl):
+                                $d = $schedDisplay[$dk] ?? [];
+                                $open = !empty($d['open']);
+                                ?>
+                                <div style="display:flex;gap:0.5rem;font-size:0.85rem;padding:0.15rem 0;">
+                                    <span style="font-weight:600;width:32px;color:#4a4a4a;"><?php echo $dl; ?></span>
+                                    <?php if ($open): ?>
+                                        <span style="color:#2c5e2a;"><?php echo e($d['from']); ?>–<?php echo e($d['to']); ?></span>
+                                    <?php else: ?>
+                                        <span style="color:#9b9b9b;">Fermé</span>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; else: ?>
+                            <span style="color:#9b9b9b;">Non renseignés</span>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>

@@ -55,6 +55,61 @@ $stmt = $pdo->prepare("
 $stmt->execute([$userId]);
 $myRequests = $stmt->fetchAll();
 
+// Fetch vet info by matching email from utilisateurs
+$vet = null;
+$vetSuccess = '';
+$vetError = '';
+$stmtVetCheck = $pdo->prepare("
+    SELECT v.* FROM veterinaires v
+    JOIN utilisateurs u ON v.email = u.email
+    WHERE u.id = ? AND v.statut_validation = 'VALIDE'
+");
+$stmtVetCheck->execute([$userId]);
+$vet = $stmtVetCheck->fetch() ?: null;
+
+if ($vet) {
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_vet_profile'])) {
+        try {
+            verifyCsrf();
+            $nomCabinet = sanitizeString($_POST['nom_cabinet'] ?? '', 200);
+            $adresse    = sanitizeString($_POST['adresse_cabinet'] ?? '', 500);
+            $telCabinet = sanitizeString($_POST['telephone_cabinet'] ?? '', 20);
+            $latitude   = sanitizeFloat($_POST['latitude'] ?? null, -90, 90) ?: null;
+            $longitude  = sanitizeFloat($_POST['longitude'] ?? null, -180, 180) ?: null;
+
+            $days = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+            $schedule = [];
+            foreach ($days as $day) {
+                $open = !empty($_POST['schedule'][$day]['open']);
+                $schedule[$day] = $open
+                        ? ['open' => true, 'from' => sanitizeString($_POST['schedule'][$day]['from'] ?? '09:00'), 'to' => sanitizeString($_POST['schedule'][$day]['to'] ?? '18:00')]
+                        : ['open' => false];
+            }
+            $horaires = json_encode($schedule);
+
+            $photoProfil = $vet['photo_profil'];
+            if (isset($_FILES['photo_profil']) && $_FILES['photo_profil']['error'] === UPLOAD_ERR_OK) {
+                $newPhoto = secureImageUpload($_FILES['photo_profil'], 'uploads/vets/', 2097152);
+                if ($newPhoto) {
+                    if ($photoProfil && file_exists($photoProfil)) unlink($photoProfil);
+                    $photoProfil = $newPhoto;
+                }
+            }
+
+            $pdo->prepare("UPDATE veterinaires SET nom_cabinet=?, adresse_cabinet=?, telephone_cabinet=?, horaires=?, latitude=?, longitude=?, photo_profil=? WHERE id=?")
+                    ->execute([$nomCabinet, $adresse, $telCabinet, $horaires, $latitude, $longitude, $photoProfil, $vet['id']]);
+
+            // Re-fetch updated vet
+            $stmtVetCheck->execute([$userId]);
+            $vet = $stmtVetCheck->fetch() ?: $vet;
+            $vetSuccess = 'Profil cabinet mis à jour avec succès !';
+        } catch (Exception $e) {
+            $vetError = $e->getMessage();
+        }
+    }
+}
+
 // Handle accept/reject
 if (isset($_POST['action']) && isset($_POST['demande_id'])) {
     verifyCsrf();
@@ -125,10 +180,10 @@ if (isset($_POST['mark_adopted']) && isset($_POST['animal_id'])) {
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .section-title { font-size: 1.3rem; color: #2c5e2a; margin-bottom: 1.5rem; }
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
         .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); border: 1px solid #f0e8df; }
-        .card-img { position: relative; height: 180px; }
-        .card-img img { width: 100%; height: 100%; object-fit: cover; }
+        .card-img { position: relative; height: 140px; }
+        .card-img img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
         .status-badge { position: absolute; top: 10px; right: 10px; padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; color: white; }
         .status-DISPONIBLE { background: #2c5e2a; }
         .status-EN_COURS { background: #ffa500; }
@@ -185,6 +240,9 @@ if (isset($_POST['mark_adopted']) && isset($_POST['animal_id'])) {
         <button class="tab active" onclick="showTab('mes-animaux')">🐾 Mes Animaux</button>
         <button class="tab" onclick="showTab('demandes-recues')">📨 Demandes Reçues</button>
         <button class="tab" onclick="showTab('mes-demandes')">📤 Mes Demandes</button>
+        <?php if ($vet): ?>
+            <button class="tab" onclick="showTab('mon-cabinet')">🏥 Mon Cabinet</button>
+        <?php endif; ?>
     </div>
 
     <!-- Mes Animaux -->
@@ -348,7 +406,124 @@ if (isset($_POST['mark_adopted']) && isset($_POST['animal_id'])) {
             </div>
         <?php endif; ?>
     </div>
+    <!-- Mon Cabinet (vets only) -->
+    <?php if ($vet): ?>
+        <div id="mon-cabinet" class="tab-content">
+            <h2 class="section-title">🏥 Mon Cabinet Vétérinaire</h2>
+
+            <?php if ($vetSuccess): ?>
+                <div style="background:#d4edda;border:1px solid #c3e6cb;color:#155724;padding:1rem;border-radius:10px;margin-bottom:1.5rem;"><?php echo e($vetSuccess); ?></div>
+            <?php endif; ?>
+            <?php if ($vetError): ?>
+                <div style="background:#f8d7da;border:1px solid #f5c6cb;color:#721c24;padding:1rem;border-radius:10px;margin-bottom:1.5rem;"><?php echo e($vetError); ?></div>
+            <?php endif; ?>
+
+            <form method="POST" enctype="multipart/form-data" style="background:white;border-radius:15px;padding:2rem;box-shadow:0 3px 10px rgba(0,0,0,0.05);border:1px solid #f0e8df;max-width:700px;">
+                <?php echo csrfField(); ?>
+                <input type="hidden" name="update_vet_profile" value="1">
+
+                <!-- Photo de profil -->
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;margin-bottom:0.5rem;color:#4a4a4a;font-weight:500;">📷 Photo de profil</label>
+                    <?php if (!empty($vet['photo_profil'])): ?>
+                        <img src="<?php echo e($vet['photo_profil']); ?>" alt="Photo" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #e0d5c8;margin-bottom:0.8rem;display:block;">
+                    <?php endif; ?>
+                    <label style="display:block;border:2px dashed #e0d5c8;border-radius:12px;padding:1rem;text-align:center;cursor:pointer;color:#8b6946;font-size:0.9rem;">
+                        <input type="file" name="photo_profil" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                        Cliquez pour ajouter / modifier la photo (max 2MB)
+                    </label>
+                </div>
+
+                <!-- Nom du cabinet -->
+                <div style="margin-bottom:1.2rem;">
+                    <label style="display:block;margin-bottom:0.5rem;color:#4a4a4a;font-weight:500;">🏥 Nom du cabinet</label>
+                    <input type="text" name="nom_cabinet" value="<?php echo e(html_entity_decode($vet['nom_cabinet'] ?? '', ENT_QUOTES|ENT_HTML5, 'UTF-8')); ?>" placeholder="Ex: Cabinet Vétérinaire du Centre" maxlength="200"
+                           style="width:100%;padding:0.8rem 1rem;border:1px solid #e0d5c8;border-radius:10px;font-size:0.95rem;font-family:inherit;">
+                </div>
+
+                <!-- Adresse -->
+                <div style="margin-bottom:1.2rem;">
+                    <label style="display:block;margin-bottom:0.5rem;color:#4a4a4a;font-weight:500;">📍 Adresse</label>
+                    <textarea name="adresse_cabinet" rows="2" placeholder="Adresse complète..." maxlength="500"
+                              style="width:100%;padding:0.8rem 1rem;border:1px solid #e0d5c8;border-radius:10px;font-size:0.95rem;font-family:inherit;resize:vertical;"><?php echo e(html_entity_decode($vet['adresse_cabinet'] ?? '', ENT_QUOTES|ENT_HTML5, 'UTF-8')); ?></textarea>
+                </div>
+
+                <!-- Téléphone cabinet -->
+                <div style="margin-bottom:1.2rem;">
+                    <label style="display:block;margin-bottom:0.5rem;color:#4a4a4a;font-weight:500;">📞 Téléphone du cabinet</label>
+                    <input type="tel" name="telephone_cabinet" value="<?php echo e(html_entity_decode($vet['telephone_cabinet'] ?? '', ENT_QUOTES|ENT_HTML5, 'UTF-8')); ?>" placeholder="20 123 456" maxlength="20"
+                           style="width:100%;padding:0.8rem 1rem;border:1px solid #e0d5c8;border-radius:10px;font-size:0.95rem;font-family:inherit;">
+                </div>
+
+                <!-- GPS -->
+                <div style="margin-bottom:1.2rem;">
+                    <label style="display:block;margin-bottom:0.5rem;color:#4a4a4a;font-weight:500;">🗺️ Coordonnées GPS</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                        <input type="number" step="any" name="latitude"  value="<?php echo e($vet['latitude']  ?? ''); ?>" placeholder="Latitude  (ex: 36.8065)" min="-90"  max="90"
+                               style="padding:0.8rem 1rem;border:1px solid #e0d5c8;border-radius:10px;font-size:0.95rem;">
+                        <input type="number" step="any" name="longitude" value="<?php echo e($vet['longitude'] ?? ''); ?>" placeholder="Longitude (ex: 10.1815)" min="-180" max="180"
+                               style="padding:0.8rem 1rem;border:1px solid #e0d5c8;border-radius:10px;font-size:0.95rem;">
+                    </div>
+                    <small style="color:#8b6946;">Laissez vide pour masquer la carte</small>
+                </div>
+
+                <!-- Horaires -->
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block;margin-bottom:0.8rem;color:#4a4a4a;font-weight:500;">⏰ Horaires d'ouverture</label>
+                    <?php
+                    $days = ['lundi'=>'Lundi','mardi'=>'Mardi','mercredi'=>'Mercredi','jeudi'=>'Jeudi','vendredi'=>'Vendredi','samedi'=>'Samedi','dimanche'=>'Dimanche'];
+                    $scheduleData = [];
+                    $rawH = html_entity_decode($vet['horaires'] ?? '', ENT_QUOTES|ENT_HTML5, 'UTF-8');
+                    $dec  = json_decode($rawH, true);
+                    if (is_array($dec)) $scheduleData = $dec;
+                    ?>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <?php foreach ($days as $key => $label):
+                            $d = $scheduleData[$key] ?? [];
+                            $isOpen = !empty($d['open']);
+                            $from   = $d['from'] ?? '09:00';
+                            $to     = $d['to']   ?? '18:00';
+                            ?>
+                            <div style="display:flex;align-items:center;gap:1rem;padding:0.6rem 1rem;background:#faf7f2;border-radius:10px;border:1px solid #e0d5c8;">
+                                <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;min-width:110px;font-weight:500;color:#4a4a4a;">
+                                    <input type="checkbox" name="schedule[<?php echo $key; ?>][open]" value="1" <?php echo $isOpen ? 'checked' : ''; ?>
+                                           onchange="toggleDayMe('<?php echo $key; ?>', this.checked)"
+                                           style="width:17px;height:17px;accent-color:#2c5e2a;cursor:pointer;">
+                                    <?php echo $label; ?>
+                                </label>
+                                <div id="me-times-<?php echo $key; ?>" style="display:flex;align-items:center;gap:0.5rem;flex:1;<?php echo $isOpen ? '' : 'opacity:0.35;pointer-events:none;'; ?>">
+                                    <input type="time" name="schedule[<?php echo $key; ?>][from]" value="<?php echo e($from); ?>"
+                                           style="padding:0.35rem 0.6rem;border:1px solid #e0d5c8;border-radius:8px;font-size:0.9rem;width:110px;">
+                                    <span style="color:#8b6946;font-weight:bold;">→</span>
+                                    <input type="time" name="schedule[<?php echo $key; ?>][to]" value="<?php echo e($to); ?>"
+                                           style="padding:0.35rem 0.6rem;border:1px solid #e0d5c8;border-radius:8px;font-size:0.9rem;width:110px;">
+                                </div>
+                                <span id="me-status-<?php echo $key; ?>" style="font-size:0.8rem;font-weight:600;min-width:45px;text-align:right;color:<?php echo $isOpen ? '#2c5e2a' : '#9b9b9b'; ?>">
+                            <?php echo $isOpen ? 'Ouvert' : 'Fermé'; ?>
+                        </span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <button type="submit" style="background:#2c5e2a;color:white;padding:0.8rem 2rem;border:none;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;">
+                    💾 Enregistrer les modifications
+                </button>
+            </form>
+        </div>
+    <?php endif; ?>
 </div>
+
+<script>
+    function toggleDayMe(key, isOpen) {
+        const times  = document.getElementById('me-times-'  + key);
+        const status = document.getElementById('me-status-' + key);
+        times.style.opacity       = isOpen ? '1'    : '0.35';
+        times.style.pointerEvents = isOpen ? 'auto' : 'none';
+        status.textContent        = isOpen ? 'Ouvert' : 'Fermé';
+        status.style.color        = isOpen ? '#2c5e2a' : '#9b9b9b';
+    }
+</script>
 
 <footer class="footer">
     <p>🐾 PetAdoption - Refuge pour animaux en Tunisie</p>
