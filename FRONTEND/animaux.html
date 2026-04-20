@@ -1,0 +1,119 @@
+<h1>🐾 Nos animaux disponibles</h1>
+<p>Découvrez tous nos animaux prêts à être adoptés ❤️</p>
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #faf7f2;
+    margin: 0;
+}
+
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    display: flex;
+    justify-content: space-between;
+}
+
+.header a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: #5a5a5a;
+    font-weight: 500;
+}
+
+.header a:hover {
+    color: #2c5e2a;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 100px auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #2c5e2a;
+}
+
+.card {
+    background: white;
+    padding: 1rem;
+    border-radius: 15px;
+    margin: 1rem 0;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+button {
+    background: #2c5e2a;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #1e461c;
+}
+
+/* notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #2c5e2a;
+    color: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+</style>
+<div class="cards" id="animalsContainer"></div>
+const animals = [
+            { id: 1, name: "Max", type: "chien", age: 2, size: "grand", location: "Tunis", locationId: "tunis", description: "Max est un berger australien énergique et affectueux. Il adore les jeux et les longues promenades.", image: "https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 2, name: "Luna", type: "chat", age: 1, size: "petit", location: "Sfax", locationId: "sfax", description: "Luna est une chatte douce et câline. Elle adore les câlins et les moments de tranquillité.", image: "https://images.unsplash.com/photo-1574158622682-e40e69881006?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♀️" },
+            { id: 3, name: "Rocky", type: "chien", age: 3, size: "moyen", location: "Sousse", locationId: "sousse", description: "Rocky est un chien loyal et protecteur. Très joueur et patient avec les enfants.", image: "https://images.unsplash.com/photo-1535083783855-76ae62b2914e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 4, name: "Milo", type: "chat", age: 4, size: "petit", location: "Tunis", locationId: "tunis", description: "Milo est un chat indépendant mais très affectueux quand il a confiance.", image: "https://images.unsplash.com/photo-1513360371669-4adf3dd7dff8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 5, name: "Nala", type: "chien", age: 1, size: "petit", location: "Bizerte", locationId: "bizerte", description: "Nala est une petite boule d'énergie. Très sociable avec les enfants.", image: "https://images.unsplash.com/photo-1596492784531-6e6f5ea2d1c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♀️" },
+            { id: 6, name: "Simba", type: "chat", age: 2, size: "moyen", location: "Sfax", locationId: "sfax", description: "Simba est un chat majestueux et calme. Il recherche un foyer tranquille.", image: "https://images.unsplash.com/photo-1533749871412-5e2e3b5a9f6a?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 7, name: "Rex", type: "chien", age: 5, size: "grand", location: "Sousse", locationId: "sousse", description: "Rex est un berger allemand très intelligent et protecteur.", image: "https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♂️" },
+            { id: 8, name: "Misty", type: "chat", age: 1, size: "petit", location: "Nabeul", locationId: "nabeul", description: "Misty est une chatte timide mais très câline une fois en confiance.", image: "https://images.unsplash.com/photo-1573865526739-10659fec78a5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80", gender: "♀️" }
+        ];
+function updateAnimalsDisplay(animals) {
+    const container = document.getElementById('animalsContainer');
+
+    container.innerHTML = animals.map(animal => `
+        <div class="card">
+            <img src="${animal.image}" width="100%">
+            <h3>${animal.name}</h3>
+            <p>${animal.description}</p>
+            <button onclick="alert('Demande envoyée')">
+                Je veux l'adopter
+            </button>
+        </div>
+    `).join('');
+}
+updateAnimalsDisplay(animals);
+<button onclick="adoptAnimal('Nom')">Je veux l'adopter</button>
+<script>
+    
+    if (!localStorage.getItem('petadoption_current_user')) {
+        window.location.href = "connexion.html";
+    }
+
+    // le reste de ton code ici
+
+    function showNotification(text) {
+        const div = document.createElement("div");
+        div.innerText = text;
+        div.style.position = "fixed";
+        div.style.top = "20px";
+        div.style.right = "20px";
+        div.style.background = "green";
+        div.style.color = "white";
+        div.style.padding = "10px";
+        document.body.appendChild(div);
+
+        setTimeout(() => div.remove(), 3000);
+    }
+</script>
